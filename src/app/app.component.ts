@@ -4,7 +4,8 @@ import { RouterOutlet } from '@angular/router';
 
 import { DataService } from './data.service';
 import { Subject, of } from 'rxjs';
-import { map, filter, mergeMap, switchMap, concatMap, debounceTime, distinctUntilChanged, catchError, takeUntil } from 'rxjs/operators';
+import { map, filter, mergeMap, switchMap, concatMap, debounceTime, distinctUntilChanged, catchError, takeUntil, first, take } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -19,99 +20,77 @@ export class AppComponent {
     styleUrls: ['./main.component.css'],
   })
   data: WritableSignal<any> = signal([]);
-  transformedData: WritableSignal<any> = signal([]);
-
-  private destroy$ = new Subject<void>();
 
   protected dataService = inject(DataService);
-
-  ngOnInit(): void {
-    this.fetchData();
-  }
-
-  fetchData() {
-    this.dataService
-      .getData()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((data) => {
-        this.data = data;
-        console.log('Fetched Data:', this.data);
-      });
-  }
+  private destroy$ = new Subject<void>();
 
   getDataWithMap() {
+    this.data.set([]);
     this.dataService
       .getData()
       .pipe(
-        map((data) => data.slice(0, 5)) // Get the first 5 items
+        map((data) => data.slice(0, 5)), // Get the first 5 items
+        takeUntil(this.destroy$)
       )
-      .subscribe((data) => {
-        this.transformedData = data;
-        console.log('Mapped Data:', data);
+      .subscribe((res) => {
+        this.data.set(res);
+        console.log('Mapped Data:', res);
       });
   }
 
   getDataWithFilter() {
+    this.data.set([]);
     this.dataService
       .getData()
       .pipe(
-        filter((data: any[]) => data.length > 0), // Ensure data is not empty
-        map((data) => data.filter((item) => item.userId === 1)) // Filter items by userId
+        filter((res: any[]) => res.length > 0), // Ensure data is not empty
+        map((res) => res.filter((item) => item.userId === 1)) // Filter items by userId
       )
       .subscribe((data) => {
-        this.transformedData.set(data);
+        this.data.set(data);
         console.log('Filtered Data:', data);
       });
   }
 
   getDataWithMergeMap() {
+    //when we want to call api with dynamic id or something else.
+    this.data.set([]);
     of(1, 2, 3)
-      .pipe(mergeMap((id) => this.dataService.getData()))
+      .pipe(
+        mergeMap((id) => this.dataService.getData())
+        // first()
+      )
       .subscribe((data) => {
-        this.transformedData = data;
+        this.data.set(data);
         console.log('Merged Data:', data);
       });
   }
 
   getDataWithSwitchMap() {
+    //when we want to call api with dynamic id or something else previous value destroyed.
+
+    this.data.set([]);
     of(1, 2, 3)
-      .pipe(switchMap((id) => this.dataService.getData()))
+      .pipe(
+        switchMap((id) => this.dataService.getData())
+        // first()
+      )
       .subscribe((data) => {
-        this.transformedData = data;
+        this.data.set(data);
         console.log('Switched Data:', data);
       });
   }
 
   getDataWithConcatMap() {
+    this.data.set([]);
     of(1, 2, 3)
-      .pipe(concatMap((id) => this.dataService.getData()))
+      .pipe(
+        concatMap((id) => this.dataService.getData())
+        // first()
+      )
       .subscribe((data) => {
-        this.transformedData = data;
+        this.data.set(data);
         console.log('Concatenated Data:', data);
-      });
-  }
-
-  getDataWithDebounce() {
-    of('search query')
-      .pipe(
-        debounceTime(300),
-        switchMap((query) => this.dataService.getData())
-      )
-      .subscribe((data) => {
-        this.transformedData = data;
-        console.log('Debounced Data:', data);
-      });
-  }
-
-  getDataWithDistinctUntilChanged() {
-    of('query1', 'query1', 'query2')
-      .pipe(
-        distinctUntilChanged(),
-        switchMap((query) => this.dataService.getData())
-      )
-      .subscribe((data) => {
-        this.transformedData = data;
-        console.log('Distinct Data:', data);
       });
   }
 

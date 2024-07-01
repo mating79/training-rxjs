@@ -4,7 +4,7 @@ import { Observable, of, Subject } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DataService {
   private apiURL = 'https://jsonplaceholder.typicode.com/posts'; // Example API
@@ -12,10 +12,7 @@ export class DataService {
   constructor(private http: HttpClient) {}
 
   getData(): Observable<any> {
-    return this.http.get(this.apiURL).pipe(
-      retry(3), // Retry up to 3 times before failing
-      catchError(this.handleError('getData', []))
-    );
+    return this.http.get(this.apiURL);
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

@@ -5,18 +5,10 @@
   <button (click)="getDataWithMergeMap()">Get Data with MergeMap</button>
   <button (click)="getDataWithSwitchMap()">Get Data with SwitchMap</button>
   <button (click)="getDataWithConcatMap()">Get Data with ConcatMap</button>
-  <button (click)="getDataWithDebounce()">Get Data with Debounce</button>
-  <button (click)="getDataWithDistinctUntilChanged()">Get Data with DistinctUntilChanged</button>
-  <!-- @if(data().length){
-
+  @if(data()){
   <div>
-    <h2>Fetched Data:</h2>
+    <h2>Data:</h2>
     <pre>{{ data() | json }}</pre>
   </div>
-  } @if(transformedData()){
-  <div>
-    <h2>Transformed Data:</h2>
-    <pre>{{ transformedData() | json }}</pre>
-  </div> -->
   }
 </div>
